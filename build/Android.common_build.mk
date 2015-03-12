@@ -412,6 +412,12 @@ endif
 
 ART_TARGET_LDFLAGS :=
 
+# BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+ifeq ($(WITH_MOTO_ART_COMPILER_MEM_OPT),true)
+  ART_TARGET_CFLAGS += -DMOTO_ART_COMPILER_MEM_OPT=1
+endif
+# END IKVPREL1L-8365
+
 # $(1): ndebug_or_debug
 define set-target-local-cflags-vars
   LOCAL_CFLAGS += $(ART_TARGET_CFLAGS)

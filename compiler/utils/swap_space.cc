@@ -24,6 +24,13 @@
 #include "base/macros.h"
 #include "base/mutex.h"
 #include "thread-inl.h"
+// BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+#include <errno.h>
+#include <string.h>
+#include <sys/mman.h>
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+// END IKVPREL1L-8365
 
 namespace art {
 
@@ -140,6 +147,17 @@ SwapSpace::SpaceChunk SwapSpace::NewFileChunk(size_t min_size) {
   if (result != 0) {
     PLOG(FATAL) << "Unable to increase swap file.";
   }
+// BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+  for (const auto& s : maps_) {
+    if (msync(s.ptr, s.size, MS_SYNC) != 0) {
+      LOG(ERROR) << "Unable to flush swap file: " << strerror(errno);
+    } else {
+      madvise(s.ptr, s.size, MADV_DONTNEED);
+    }
+  }
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+// END IKVPREL1L-8365
   uint8_t* ptr = reinterpret_cast<uint8_t*>(
       mmap(nullptr, next_part, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, size_));
   if (ptr == MAP_FAILED) {

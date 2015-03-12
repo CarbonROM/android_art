@@ -288,9 +288,16 @@ Runtime::~Runtime() {
     self = nullptr;
   }
 
-  // Make sure to let the GC complete if it is running.
-  heap_->WaitForGcToComplete(gc::kGcCauseBackground, self);
-  heap_->DeleteThreadPool();
+  // BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+  if (heap_ != nullptr)
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+  {
+    // Make sure to let the GC complete if it is running.
+    heap_->WaitForGcToComplete(gc::kGcCauseBackground, self);
+    heap_->DeleteThreadPool();
+  }
+  // END IKVPREL1L-8365
   if (jit_ != nullptr) {
     ScopedTrace trace2("Delete jit");
     VLOG(jit) << "Deleting jit thread pool";
@@ -324,7 +331,14 @@ Runtime::~Runtime() {
   delete monitor_list_;
   delete monitor_pool_;
   delete class_linker_;
-  delete heap_;
+  // BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+  if (heap_ != nullptr)
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+  {
+    delete heap_;
+  }
+  // END IKVPREL1L-8365
   delete intern_table_;
   delete java_vm_;
   delete oat_file_manager_;
@@ -343,6 +357,17 @@ Runtime::~Runtime() {
   CHECK(instance_ == nullptr || instance_ == this);
   instance_ = nullptr;
 }
+
+// BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+void Runtime::ShutdownHeap() {
+    heap_->WaitForGcToComplete(gc::kGcCauseBackground, Thread::Current());
+    heap_->DeleteThreadPool();
+    delete heap_;
+    heap_ = nullptr;
+}
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+// END IKVPREL1L-8365
 
 struct AbortState {
   void Dump(std::ostream& os) const {

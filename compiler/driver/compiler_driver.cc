@@ -2865,9 +2865,16 @@ bool CompilerDriver::RequiresConstructorBarrier(Thread* self,
 std::string CompilerDriver::GetMemoryUsageString(bool extended) const {
   std::ostringstream oss;
   const gc::Heap* const heap = Runtime::Current()->GetHeap();
-  const size_t java_alloc = heap->GetBytesAllocated();
   oss << "arena alloc=" << PrettySize(max_arena_alloc_) << " (" << max_arena_alloc_ << "B)";
-  oss << " java alloc=" << PrettySize(java_alloc) << " (" << java_alloc << "B)";
+  // BEGIN Motorola, a5705c, 03/12/2015, IKVPREL1L-8365
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+  if (heap != nullptr)
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+  {
+    const size_t java_alloc = heap->GetBytesAllocated();
+    oss << " java alloc=" << PrettySize(java_alloc) << " (" << java_alloc << "B)";
+  }
+  // END IKVPREL1L-8365
 #if defined(__BIONIC__) || defined(__GLIBC__)
   const struct mallinfo info = mallinfo();
   const size_t allocated_space = static_cast<size_t>(info.uordblks);
