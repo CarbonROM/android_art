@@ -251,7 +251,14 @@ Runtime::~Runtime() {
     // This can't be called from the Heap destructor below because it
     // could call RosAlloc::InspectAll() which needs the thread_list
     // to be still alive.
-    heap_->DumpGcPerformanceInfo(LOG(INFO));
+    // BEGIN Motorola, ubanerji, 10/5/2015, IKSWM-3788
+#ifdef MOTO_ART_COMPILER_MEM_OPT
+    if (heap_ != nullptr)
+#endif /* MOTO_ART_COMPILER_MEM_OPT */
+    {
+      heap_->DumpGcPerformanceInfo(LOG(INFO));
+    }
+    // END IKSWM-3788
   }
 
   Thread* self = Thread::Current();
