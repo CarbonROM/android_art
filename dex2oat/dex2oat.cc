@@ -81,7 +81,7 @@
 #include "utils.h"
 #include "well_known_classes.h"
 #include "zip_archive.h"
-#ifdef HAVE_ANDROID_OS
+#ifdef __ANDROID__
 #include "cutils/properties.h"
 #endif
 
@@ -1203,7 +1203,7 @@ class Dex2Oat FINAL {
     InsertCompileOptions(argc, argv);
 
     // Override the number of compiler threads with optimal value (thru system property)
-    #ifdef HAVE_ANDROID_OS
+    #ifdef __ANDROID__
     const char* propertyName = "ro.sys.fw.dex2oat_thread_count";
     char thread_count_str[PROPERTY_VALUE_MAX];
 
